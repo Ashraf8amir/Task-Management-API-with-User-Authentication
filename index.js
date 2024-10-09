@@ -3,12 +3,13 @@ const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const port = port || 6060 ;
-const app = express();
+const port = process.env.PORT || 6060 ;
+const app = express(); 
 app.use(express.json())
+require('dotenv').config()
 
 
-const db = new sqlite3.Database("./database/db.sqlite3",(err)=>{
+const db = new sqlite3.Database(process.env.DB_PATH,(err)=>{
     if (err) {
         console.log(`Erro in database connection `,err.message)
     } else {
@@ -50,7 +51,7 @@ const validtoken = (req,res,next)=>{
     if (!token) {
         return res.status(401).send("Unauthorized")
     }
-    jwt.verify(token,"a_i_m",(err,decoded)=>{
+    jwt.verify(token,process.env.JWT_SECRET,(err,decoded)=>{
         if (err) {
             return res.status(403).send("forbidden")
         }
@@ -105,7 +106,7 @@ app.post("/login",(req,res)=>{
         if (!validpassword) {
             return res.status(400).send("Invalid  password")
         }
-        const token = jwt.sign({email : user.email, id : user.id, role :user.role },"a_i_m",{ expiresIn : '1h' })
+        const token = jwt.sign({email : user.email, id : user.id, role :user.role },process.env.JWT_SECRET,{ expiresIn : '1h' })
         res.send(`Login successful🫡🫡 \n\ntoken for you : ${token}`)
     })
 })
