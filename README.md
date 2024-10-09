@@ -22,6 +22,8 @@
         <li><strong>JWT</strong>: JSON Web Token for authentication and securing routes.</li>
         <li><strong>bcryptjs</strong>: For hashing and verifying passwords.</li>
     </ul>
+    <h2>Demonstration Video</h2>
+    <img src="/Demonstration Video/2024-10-09-17-22-39-_1_.gif" alt="Project Overview" width="700">
     <h2>Installation</h2>
     <p>To get started with the project, follow these steps:</p>
     <ol>
@@ -131,7 +133,5 @@ JWT_SECRET=your_jwt_secret_key</code></pre>
         <li>Implement search and filtering by task status.</li>
         <li>Improve error handling and validation.</li>
     </ul>
-    <h2>Demonstration Video</h2>
-    <img src="/Demonstration Video/2024-10-09-17-22-39-_1_.gif" alt="Project Overview" width="600">
     <h2>License</h2>
     <p>This project is open-source and available under the <a href="LICENSE">MIT License</
