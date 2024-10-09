@@ -115,3 +115,109 @@ app.get('/tasks/manage', validtoken, (req, res) => {
 app.listen(port,()=>{
     console.log("listening to port",port)
 })
+
+
+
+
+
+/*-----------------------------------------------------------------------------------*/
+//tasks 
+
+
+db.run(`CREATE TABLE IF NOT EXISTS tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    status TEXT DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    user_id INTEGER,
+    FOREIGN KEY(user_id) REFERENCES user(id)
+)`, (err) => {
+    if (err) {
+        console.log("Error creating tasks table", err.message);
+    } else {
+        console.log("Successfully created tasks table");
+    }
+});
+
+
+
+// Only admin can create a task
+app.post("/tasks", validtoken, (req, res) => {
+    const { title, description, status } = req.body;
+
+    if (req.userrole !== 'admin') {
+        return res.status(403).send("Access denied: Only admins can create tasks");
+    }
+
+    if (!title || !description) {
+        return res.status(400).send("Please provide all necessary details");
+    }
+
+    db.run(`INSERT INTO tasks (title, description, status, user_id) VALUES (?, ?, ?, ?)`,
+        [title, description, status || 'pending', req.userid], (err) => {
+            if (err) {
+                return res.status(500).send("Error creating task");
+            }
+            res.status(201).send("Task created successfully");
+        });
+});
+
+
+// All users can view tasks
+app.get("/tasks", validtoken, (req, res) => {
+    db.all(`SELECT * FROM tasks`, [], (err, rows) => {
+        if (err) {
+            return res.status(500).send("Error rech tasks");
+        }
+        res.send(rows);
+    });
+});
+
+
+
+
+// update tasks
+app.put("/tasks/:id", validtoken, (req, res) => {
+    const { id } = req.params;
+    const { title, description, status } = req.body;
+
+    if (req.userrole !== 'admin') {
+        return res.status(403).send("Access denied: Only admins can update tasks");
+    }
+
+    db.get(`SELECT * FROM tasks WHERE id = ?`, [id], (err, task) => {
+        if (err) return res.status(500).send("Error fetching task");
+        if (!task) return res.status(404).send("Task not found");
+
+        const updatedTitle = title || task.title;
+        const updatedDescription = description || task.description;
+        const updatedStatus = status || task.status;
+
+        db.run(`UPDATE tasks SET title = ?, description = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+            [updatedTitle, updatedDescription, updatedStatus, id], (err) => {
+                if (err) return res.status(500).send("Error updating task");
+                res.send("Task updated successfully");
+            });
+    });
+});
+
+
+// delete spasfic task
+app.delete('/tasks/:id', validtoken, (req, res) => {
+    const taskId = req.params.id;  
+
+    db.run(`DELETE FROM tasks WHERE id = ?`, taskId, function (err) {
+        if (err) {
+            return res.status(500).send("Error deleting task: " + err.message);
+        }
+        if (this.changes === 0) {
+            return res.status(404).send("Task not found");
+        }
+        res.send("Task deleted successfully");
+    });
+});
+
+
+
