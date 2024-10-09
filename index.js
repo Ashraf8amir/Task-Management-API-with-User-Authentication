@@ -180,6 +180,31 @@ app.put('/tasks/:id',validtoken,(req,res)=>{
     })
 })
 
+// change status by user
+app.put("/tasks/:id/status", validtoken, (req, res) =>{
+    const taskId = req.params.id;
+    const { status } = req.body;
+    db.get(`SELECT * FROM task WHERE id = ?`, [taskId], (err, task) => {
+        if (err) {
+            return res.status(500).send("Error fetching task🤦‍♂️");
+        } 
+        if (!task) {
+            return res.status(404).send("Task not found");
+        }
+        if (task.status !== "pending") {
+            return res.status(403).send("this is Done");
+        }
+        db.run(
+            `UPDATE task SET status = ? WHERE id = ?`,[status, taskId],(err)=>{
+                if (err) {
+                    return res.status(500).send("Error updating task status🧨");
+                }
+                res.send("Done Task🫡");
+            }
+        );
+    });
+})
+
 app.listen(port,()=>{
     console.log("listening to port",port)
 })
