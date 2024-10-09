@@ -131,5 +131,7 @@ JWT_SECRET=your_jwt_secret_key</code></pre>
         <li>Implement search and filtering by task status.</li>
         <li>Improve error handling and validation.</li>
     </ul>
+    <h2>Demonstration Video</h2>
+    <img src="/Demonstration Video/2024-10-09-17-22-39-_1_.gif" alt="Project Overview" width="900">
     <h2>License</h2>
     <p>This project is open-source and available under the <a href="LICENSE">MIT License</
