@@ -1,8 +1,6 @@
  <h1>Task Management API</h1>
-    <hr>
     <h2>Overview</h2>
     <p>This is a task management API built using Node.js, Express, SQLite3, and JWT for authentication. The API allows user registration, login, task management (CRUD operations), and role-based access control (Admin and Normal User).</p>
-    <hr>
     <h2>Features</h2>
     <ul>
         <li><strong>User Registration</strong>: New users can register by providing a username, password, email, and phone number.</li>
@@ -16,7 +14,6 @@
         <li><strong>Role-Based Access Control</strong>: Admins have higher privileges than normal users.</li>
         <li><strong>JWT Authentication</strong>: Secures API routes and allows only authenticated users to perform actions.</li>
     </ul>
-    <hr>
     <h2>Technologies Used</h2>
     <ul>
         <li><strong>Node.js</strong>: JavaScript runtime.</li>
@@ -25,7 +22,6 @@
         <li><strong>JWT</strong>: JSON Web Token for authentication and securing routes.</li>
         <li><strong>bcryptjs</strong>: For hashing and verifying passwords.</li>
     </ul>
-    <hr>
     <h2>Installation</h2>
     <p>To get started with the project, follow these steps:</p>
     <ol>
@@ -51,12 +47,10 @@ JWT_SECRET=your_jwt_secret_key</code></pre>
         </li>
     </ol>
     <p>The API should now be running at <code>http://localhost:6060</code>.</p>
-    <hr>
     <h2>Authentication & Authorization</h2>
     <p><strong>JWT Token</strong> is required for all endpoints except <code>/register</code> and <code>/login</code>. Admins can perform CRUD operations on tasks. Normal users can only mark tasks as <code>pending</code> or <code>done</code>.</p>
     <h2>Database</h2>
     <p>The API uses <strong>SQLite3</strong> to store user and task data. You can modify the database path in the <code>.env</code> file as needed.</p>
-    <hr>
     <h3>User Table Schema</h3>
     <table border="1">
         <thead>
@@ -137,6 +131,5 @@ JWT_SECRET=your_jwt_secret_key</code></pre>
         <li>Implement search and filtering by task status.</li>
         <li>Improve error handling and validation.</li>
     </ul>
-    <hr>
     <h2>License</h2>
     <p>This project is open-source and available under the <a href="LICENSE">MIT License</
