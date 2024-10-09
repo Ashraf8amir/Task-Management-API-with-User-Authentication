@@ -1,6 +1,6 @@
 const http = require("node:http");
 const express = require("express");
-const sqlite3 = require("sqlite3").verbose();
+const db = require('./database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 6060 ;
@@ -8,43 +8,6 @@ const app = express();
 app.use(express.json())
 require('dotenv').config()
 
-
-const db = new sqlite3.Database(process.env.DB_PATH,(err)=>{
-    if (err) {
-        console.log(`Erro in database connection `,err.message)
-    } else {
-        db.run(`CREATE TABLE IF NOT EXISTS user (
-            
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            password TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE,
-            phone TEXT NOT NULL UNIQUE,
-            role TEXT DEFAULT 'normal user'
-            )`,(err)=>{
-                if(err){
-                    console.log("Erro in create user table",err.message);
-                }else{
-                    console.log("successfully create user table")
-                }
-            })
-
-            db.run(`CREATE TABLE IF NOT EXISTS task (
-            
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL,
-                description TEXT,
-                status TEXT DEFAULT 'pending'
-                )`,(err)=>{
-                    if(err){
-                        console.log("Erro in create task table",err.message);
-                    }else{
-                        console.log("successfully create task table")
-                    }
-                })
-    }
-    console.log(`connected in database `)
-})
 
 const validtoken = (req,res,next)=>{
     const token = req.headers['authorization']?.split(" ")[1];
@@ -79,14 +42,19 @@ app.post("/register",(req,res)=>{
             return res.status(409).send("User already exists")
         } 
     })
-    const hashedPassword = bcrypt.hashSync(password, 10); 
-    db.run(`INSERT INTO user ( username, password, email, phone, role ) VALUES (?, ?, ?, ?, ?)`,[username, hashedPassword, email, phone, userRole],(err)=>{
+    bcrypt.hash(password, 10,(err,hashedPassword)=>{
         if (err) {
-            console.log("Erro inserting data in table user",err.message)
-           return res.status(500).send("Erro inserting data in table user")
-        } 
-            res.status(201).send("user registered successfully😁")
-    })
+            return res.status(500).send("Error hashing password");
+        }
+        db.run(`INSERT INTO user ( username, password, email, phone, role ) VALUES (?, ?, ?, ?, ?)`,[username, hashedPassword, email, phone, userRole],(err)=>{
+            if (err) {
+                console.log("Erro inserting data in table user",err.message)
+               return res.status(500).send("Erro inserting data in table user")
+            } 
+                res.status(201).send("user registered successfully😁")
+        })
+    }); 
+    
 })
 
 // login user  
