@@ -3,10 +3,13 @@ const express = require("express");
 const db = require('./database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const morgan = require('morgan');
 const port = process.env.PORT || 6060 ;
 const app = express(); 
-app.use(express.json())
 require('dotenv').config()
+app.use(express.json())
+app.use(morgan('dev'))
+
 
 
 const validtoken = (req,res,next)=>{
@@ -41,7 +44,7 @@ app.post("/register",(req,res)=>{
         if (row) {
             return res.status(409).send("User already exists")
         } 
-    })
+    }) 
     bcrypt.hash(password, 10,(err,hashedPassword)=>{
         if (err) {
             return res.status(500).send("Error hashing password");
