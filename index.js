@@ -10,8 +10,6 @@ require('dotenv').config()
 app.use(express.json())
 app.use(morgan('dev'))
 
-
-
 const validtoken = (req,res,next)=>{
     const token = req.headers['authorization']?.split(" ")[1];
     if (!token) {
@@ -30,56 +28,79 @@ const validtoken = (req,res,next)=>{
 } 
 
 // register user   
-app.post("/register",(req,res)=>{
+app.post("/register",async(req,res)=>{
     const { username, password, email, phone, role } = req.body;  
-    if (!username || !password || !email || !phone) {
+    if (!username || !password || !email || !phone) { 
         return res.status(404).send("please provide all details")
     }
     const userRole = role || 'normal user';
-    db.get(`SELECT email FROM user WHERE email = ?`, [email], (err, row) => {
-        if (err) {
-            console.log("Error fetching data", err.message); 
-            return res.status(500).send("Error fetching data🧨")
-        }
-        if (row) {
-            return res.status(409).send("User already exists")
-        } 
-    }) 
-    bcrypt.hash(password, 10,(err,hashedPassword)=>{
-        if (err) {
-            return res.status(500).send("Error hashing password");
-        }
-        db.run(`INSERT INTO user ( username, password, email, phone, role ) VALUES (?, ?, ?, ?, ?)`,[username, hashedPassword, email, phone, userRole],(err)=>{
-            if (err) {
-                console.log("Erro inserting data in table user",err.message)
-               return res.status(500).send("Erro inserting data in table user")
-            } 
-                res.status(201).send("user registered successfully😁")
+    try {
+        const userexists = await new Promise((resolve, reject) => {
+            db.get(`SELECT email FROM user WHERE email = ?`, [email], (err, row) => {
+                if (err) {
+                    reject(err)
+                    return res.status(500).send("Error fetching data🧨")
+                }
+                resolve(row)
+            }) 
         })
-    }); 
-    
+        if (userexists) {
+            return res.status(409).send("User already exists")
+        }
+        const hashedPassword = await new Promise((resolve, reject) => {
+            bcrypt.hash(password, 10, (err,hash)=>{
+                if (err) {
+                    reject(err);
+                    return res.status(500).send("Error hashing password");
+                } 
+                resolve(hash)
+            })
+        })
+        await new Promise((resolve, reject) => {
+            db.run(`INSERT INTO user ( username, password, email, phone, role ) VALUES (?, ?, ?, ?, ?)`,[username, hashedPassword, email, phone, userRole],(err)=>{
+                if (err) {
+                    reject(err);
+                    return res.status(500).send("Error inserting data in table user");
+                }
+                resolve()
+            })
+        })
+        return res.status(201).send("User registered successfully 😁");
+    } catch (err) {
+        console.error("Error in: ", err.message);
+        return res.status(500).send("Internal server error 🧨");
+    }
 })
 
 // login user  
-app.post("/login",(req,res)=>{
+app.post("/login",async(req,res)=>{
     const { password , email } = req.body;
     if (!password || !email) {
         return res.status(404).send("please provide all details")
     }
-    db.get(`SELECT * FROM user WHERE email = ?`,[email],(err,user)=>{
-        if (err) {
-            return res.status(500).send("Error accessing the database🧨")
+    try {
+        const emailexists = await new Promise((resolve, reject) => {
+            db.get(`SELECT * FROM user WHERE email = ?`,[email],(err,user)=>{
+                if (err) {
+                    reject(err)
+                    return res.status(500).send("Error accessing the database🧨")
+                }
+                resolve(user)
+            })
+        })
+        if (!emailexists) {
+            return res.status(400).send("Invalid email")
         }
-        if (!user) {
-            return res.status(400).send("Invalid email ")
-        }
-        const validpassword = bcrypt.compareSync(password,user.password)
+        const validpassword = await bcrypt.compareSync(password,emailexists.password)
         if (!validpassword) {
             return res.status(400).send("Invalid  password")
         }
-        const token = jwt.sign({email : user.email, id : user.id, role :user.role },process.env.JWT_SECRET,{ expiresIn : '1h' })
+        const token = jwt.sign({email : emailexists.email, id : emailexists.id, role :emailexists.role },process.env.JWT_SECRET,{ expiresIn : '1h' })
         res.send(`Login successful🫡🫡 \n\ntoken for you : ${token}`)
-    })
+    } catch (error) {
+        console.error("Error in: ", err.message);
+        return res.status(500).send("Internal server error 🧨");
+    }
 })
 // create task
 app.post('/tasks', validtoken, (req, res) => {
